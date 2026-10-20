@@ -133,17 +133,17 @@ jobs:
           fi
           echo "DEVICE_TREE_URL=${DEVICE_TREE_URL}" >> $GITHUB_ENV
 
-    - name: Check if Recovery Exist
-      run: |
-        cd ${GITHUB_WORKSPACE}/OrangeFox/fox_${{ steps.fox_branch.outputs.value }}
-        if [ -f out/target/product/${{ github.event.inputs.BUILD_TARGET }}/OrangeFox*.img ] || [ -f out/target/product/${{ github.event.inputs.BUILD_TARGET }}/recovery.img ]; then
-            echo "CHECK_IMG_IS_OK=true" >> $GITHUB_ENV
-            echo "FILE_PATH=${GITHUB_WORKSPACE}/OrangeFox/fox_${{ steps.fox_branch.outputs.value }}/out/target/product/${{ github.event.inputs.BUILD_TARGET }}" >> $GITHUB_ENV
-            echo "MD5_IMG=$(md5sum out/target/product/${{ github.event.inputs.BUILD_TARGET }}/*.img | head -n 1 | cut -d ' ' -f 1)" >> $GITHUB_ENV
-        else
-            echo "Recovery out directory is empty."
-            exit 1
-        fi
+      - name: Check if Recovery Exist
+        run: |
+          cd ${GITHUB_WORKSPACE}/OrangeFox/fox_${{ steps.fox_branch.outputs.value }}
+          if [ -f out/target/product/${{ github.event.inputs.BUILD_TARGET }}/OrangeFox*.img ] || [ -f out/target/product/${{ github.event.inputs.BUILD_TARGET }}/recovery.img ]; then
+              echo "CHECK_IMG_IS_OK=true" >> $GITHUB_ENV
+              echo "FILE_PATH=${GITHUB_WORKSPACE}/OrangeFox/fox_${{ steps.fox_branch.outputs.value }}/out/target/product/${{ github.event.inputs.BUILD_TARGET }}" >> $GITHUB_ENV
+              echo "MD5_IMG=$(md5sum out/target/product/${{ github.event.inputs.BUILD_TARGET }}/*.img | head -n 1 | cut -d ' ' -f 1)" >> $GITHUB_ENV
+          else
+              echo "Recovery out directory is empty."
+              exit 1
+          fi
         
       - name: Rename the Recovery
         run: |
