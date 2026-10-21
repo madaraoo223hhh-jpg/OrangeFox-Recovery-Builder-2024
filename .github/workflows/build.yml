@@ -137,31 +137,29 @@ jobs:
         run: |
           cd ${GITHUB_WORKSPACE}/OrangeFox/fox_${{ github.event.inputs.MANIFEST_BRANCH }}
           
-          echo "=== Current Directory ==="
-          pwd
-          
-          echo "=== Checking out/ directory contents ==="
-          find out -maxdepth 3 2>/dev/null || echo "No 'out' directory found!"
-          
           # Find output directory automatically under out/target/product/
           TARGET_DIR=$(ls -d out/target/product/* 2>/dev/null | head -n 1)
           
           if [ -z "$TARGET_DIR" ]; then
-            echo "Error: Recovery out directory is empty or missing."
-            echo "Listing workspace root:"
-            ls -la
+            echo "Error: Target directory out/target/product/ is missing or empty."
             exit 1
           fi
           
-          echo "Found build output in: ${TARGET_DIR}"
+          echo "Found target build dir: ${TARGET_DIR}"
+          echo "=== Contents of ${TARGET_DIR} ==="
+          ls -la "${TARGET_DIR}"
           
-          if ls ${TARGET_DIR}/OrangeFox*.img 1>/dev/null 2>&1 || ls ${TARGET_DIR}/recovery.img 1>/dev/null 2>&1 || ls ${TARGET_DIR}/*.zip 1>/dev/null 2>&1; then
+          # Check for OrangeFox zip or any recovery/boot image in TARGET_DIR or root
+          FOX_ZIP=$(find ${TARGET_DIR} -maxdepth 2 -name "OrangeFox*.zip" 2>/dev/null | head -n 1)
+          RECOVERY_IMG=$(find ${TARGET_DIR} -maxdepth 2 \( -name "recovery.img" -o -name "boot.img" -o -name "OrangeFox*.img" \) 2>/dev/null | head -n 1)
+          
+          if [ -n "$FOX_ZIP" ] || [ -n "$RECOVERY_IMG" ]; then
             echo "CHECK_IMG_IS_OK=true" >> $GITHUB_ENV
             echo "FILE_PATH=${GITHUB_WORKSPACE}/OrangeFox/fox_${{ github.event.inputs.MANIFEST_BRANCH }}/${TARGET_DIR}" >> $GITHUB_ENV
             echo "MD5_IMG=$(md5sum ${TARGET_DIR}/*.img 2>/dev/null | head -n 1 | cut -d ' ' -f 1)" >> $GITHUB_ENV
+            echo "Build check passed successfully!"
           else
-            echo "No recovery image files found inside ${TARGET_DIR}"
-            ls -la ${TARGET_DIR}
+            echo "Recovery out directory is empty."
             exit 1
           fi
 
