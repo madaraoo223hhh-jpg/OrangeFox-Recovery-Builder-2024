@@ -137,23 +137,32 @@ jobs:
         run: |
           cd ${GITHUB_WORKSPACE}/OrangeFox/fox_${{ github.event.inputs.MANIFEST_BRANCH }}
           
+          echo "=== Current Directory ==="
+          pwd
+          
+          echo "=== Checking out/ directory contents ==="
+          find out -maxdepth 3 2>/dev/null || echo "No 'out' directory found!"
+          
           # Find output directory automatically under out/target/product/
           TARGET_DIR=$(ls -d out/target/product/* 2>/dev/null | head -n 1)
           
           if [ -z "$TARGET_DIR" ]; then
-            echo "Recovery out directory is empty."
+            echo "Error: Recovery out directory is empty or missing."
+            echo "Listing workspace root:"
+            ls -la
             exit 1
           fi
-
+          
           echo "Found build output in: ${TARGET_DIR}"
-
-          if ls ${TARGET_DIR}/OrangeFox*.img 1>/dev/null 2>&1 || ls ${TARGET_DIR}/recovery.img 1>/dev/null 2>&1 || ls ${TARGET_DIR}/OrangeFox*.zip 1>/dev/null 2>&1; then
-              echo "CHECK_IMG_IS_OK=true" >> $GITHUB_ENV
-              echo "FILE_PATH=${GITHUB_WORKSPACE}/OrangeFox/fox_${{ github.event.inputs.MANIFEST_BRANCH }}/${TARGET_DIR}" >> $GITHUB_ENV
-              echo "MD5_IMG=$(md5sum ${TARGET_DIR}/*.img 2>/dev/null | head -n 1 | cut -d ' ' -f 1)" >> $GITHUB_ENV
+          
+          if ls ${TARGET_DIR}/OrangeFox*.img 1>/dev/null 2>&1 || ls ${TARGET_DIR}/recovery.img 1>/dev/null 2>&1 || ls ${TARGET_DIR}/*.zip 1>/dev/null 2>&1; then
+            echo "CHECK_IMG_IS_OK=true" >> $GITHUB_ENV
+            echo "FILE_PATH=${GITHUB_WORKSPACE}/OrangeFox/fox_${{ github.event.inputs.MANIFEST_BRANCH }}/${TARGET_DIR}" >> $GITHUB_ENV
+            echo "MD5_IMG=$(md5sum ${TARGET_DIR}/*.img 2>/dev/null | head -n 1 | cut -d ' ' -f 1)" >> $GITHUB_ENV
           else
-              echo "No recovery image files found inside ${TARGET_DIR}"
-              exit 1
+            echo "No recovery image files found inside ${TARGET_DIR}"
+            ls -la ${TARGET_DIR}
+            exit 1
           fi
 
       - name: Rename the Recovery
